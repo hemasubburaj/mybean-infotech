@@ -9,6 +9,7 @@ exports.handler = async (e) => {
   let d; try { d = JSON.parse(e.body || "{}"); } catch { return out(400, { message: "Bad JSON" }); }
 
   if (e.queryStringParameters?.action === "login") {
+  if (e.queryStringParameters?.debug) return out(200, { userLen: (process.env.ADMIN_USER || "").length, passLen: (process.env.ADMIN_PASS || "").length, ctx: process.env.CONTEXT });
     if (eq(String(d.user || ""), process.env.ADMIN_USER) && eq(String(d.pass || ""), process.env.ADMIN_PASS)) {
       const exp = String(Date.now() + 8 * 3600 * 1000);
       return out(200, { token: exp + "." + sign(exp) });
