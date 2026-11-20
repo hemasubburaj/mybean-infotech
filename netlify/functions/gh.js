@@ -1,7 +1,7 @@
 const crypto = require("crypto");
 const REPO = "hemasubburaj/mybean-infotech";
 const sign = (s) => crypto.createHmac("sha256", process.env.SESSION_SECRET).update(s).digest("hex");
-const eq = (a, b) => { const x = Buffer.from(a), y = Buffer.from(b); return x.length === y.length && crypto.timingSafeEqual(x, y); };
+const eq = (a, b) => { const x = Buffer.from(String(a ?? "")), y = Buffer.from(String(b ?? "")); return x.length === y.length && crypto.timingSafeEqual(x, y); };
 const out = (c, b) => ({ statusCode: c, headers: { "Content-Type": "application/json" }, body: JSON.stringify(b) });
 
 exports.handler = async (e) => {
