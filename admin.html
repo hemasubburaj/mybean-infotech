@@ -20,6 +20,23 @@ button.o{background:#fff;color:var(--ink);border:1px solid var(--ink)}button.s{p
 .row .full{grid-column:1/-1}.rt{grid-column:1/-1;display:flex;gap:8px;align-items:center;justify-content:space-between;font-weight:600}
 @media(max-width:700px){.row{grid-template-columns:1fr}}
 </style></head><body>
+<div id="login2" class="card"><h1>my<b>bean</b> admin</h1>
+<p>Sign in to edit your website content.</p>
+<label>Username<input id="lu" autocomplete="username"></label>
+<label>Password<input id="lp" type="password" autocomplete="current-password"></label>
+<button id="lb" class="pill" type="button">Sign in</button><p id="le" style="color:#d4432a"></p></div>
+<style>#login{display:none!important}</style>
+<script>
+const _f=window.fetch;
+window.fetch=(u,o={})=>typeof u==="string"&&u.startsWith("https://api.github.com/")?_f("/.netlify/functions/gh",{method:"POST",headers:{"Content-Type":"application/json",Authorization:"Bearer "+sessionStorage.mbTok},body:JSON.stringify({path:u.slice(22),method:o.method||"GET",body:o.body?JSON.parse(o.body):undefined})}):_f(u,o);
+document.addEventListener("DOMContentLoaded",()=>{const q=i=>document.getElementById(i);
+q("lb").onclick=async()=>{q("le").textContent="";
+const r=await _f("/.netlify/functions/gh?action=login",{method:"POST",body:JSON.stringify({user:q("lu").value,pass:q("lp").value})});
+const d=await r.json(); if(!r.ok){q("le").textContent=d.message;return}
+sessionStorage.mbTok=d.token; const i=document.querySelectorAll("#login input");
+i[0].value="hemasubburaj/mybean-infotech"; i[1].value="main"; i[2].value=d.token;
+q("login2").hidden=true; document.querySelector("#login button").click()}});
+</script>
 <div id="login" class="card"><h1>my<b>bean</b> admin</h1>
 <p>Edit your website content. Changes are saved to your GitHub repo and go live after Netlify redeploys (about a minute).</p>
 <label>GitHub repo (owner/name)<input id="repo" placeholder="yourname/mybean-site"></label>
