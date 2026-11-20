@@ -4,7 +4,7 @@ const sign = (s) => crypto.createHmac("sha256", process.env.SESSION_SECRET).upda
 const eq = (a, b) => { const x = Buffer.from(String(a ?? "")), y = Buffer.from(String(b ?? "")); return x.length === y.length && crypto.timingSafeEqual(x, y); };
 const out = (c, b) => ({ statusCode: c, headers: { "Content-Type": "application/json" }, body: JSON.stringify(b) });
 
-exports.handler = async (e) => {
+const run = async (e) => {
   if (e.httpMethod !== "POST") return out(405, { message: "POST only" });
   let d; try { d = JSON.parse(e.body || "{}"); } catch { return out(400, { message: "Bad JSON" }); }
 
@@ -28,3 +28,4 @@ exports.handler = async (e) => {
   });
   return { statusCode: r.status, headers: { "Content-Type": "application/json" }, body: await r.text() };
 };
+exports.handler = async (e) => { try { return await run(e); } catch (err) { return out(500, { message: String((err && err.message) || err) }); } };
