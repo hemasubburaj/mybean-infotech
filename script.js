@@ -2,6 +2,7 @@
 const C = { wa: "919655155611", mail: "info@mybeaninfotech.com", ph: ["+91 96551 55611", "+91 96262 61516"],
   a1: "No. 85, 2nd Floor, Avarampalayam Road, New Siddhapudur, Coimbatore – 641044, Tamil Nadu",
   a2: "4/1A, Guru Complex, 2nd Floor, Kasthuri Bai Street, Ganapathy, Coimbatore – 641006" };
+if (window.MB && window.MB.contact) Object.assign(C, window.MB.contact);
 const IMG = "https://mybeaninfotech.com/wp-content/uploads/"; // change to "images/" after downloading
 const WA = `https://wa.me/${C.wa}?text=` + encodeURIComponent("Hi MyBean InfoTech, I'm interested in your services. Can you share more details?");
 const SOC = [["Instagram", "instagram", "https://www.instagram.com/mybean_info/"], ["Facebook", "facebook-f", "https://www.facebook.com/profile.php?id=61554712267244"],
@@ -28,6 +29,10 @@ const wk = [["ERP Software", "Business", IMG + "2021/06/erp.jpg"], ["Stock Contr
 const steps = [["Share your need", "Tell us the goal and the pain. We listen first and write it down."], ["Design & plan", "We draw the screens and the roadmap, with clear scope and cost."], ["Build it", "We develop in short cycles and show you working software often."], ["Test & deliver", "We test, train your team and stay on for support after go-live."]];
 const why = [["Customer-first", "We are here because of our customers. When their needs change, we change."], ["Domain depth", "Hospitals, schools, stock, billing and transport — we've built each of them."], ["Tailored builds", "No one-size-fits-all. Every system is fitted to how you actually work."], ["Honest partnership", "Clear scope, clear cost, regular demos. You always know what's next."], ["Long-term support", "Maintenance and upgrades after launch, not just a hand-over."], ["Growth built in", "SEO, marketing and branding under the same roof as the software."]];
 const faq = [["What does MyBean InfoTech do?", "We build business software (ERP, billing, hospital, school, stock and transport systems) and offer design, SEO, digital marketing, branding and research support from Coimbatore."], ["How long does a project take?", "It depends on scope. We give you a timeline after we understand your requirement."], ["How much does it cost?", "It depends on scope, like the cost of a house. Share your requirement and we send a clear quote before we begin."], ["Do you support us after launch?", "Yes. We train your team, fix issues and handle upgrades after go-live."], ["Where are you located?", "Coimbatore, Tamil Nadu. We also work with clients across India remotely."]];
+
+if (window.MB) { const M = window.MB, wa = SOC.find(s => s[0] === "WhatsApp");
+  [["services", sv], ["projects", wk], ["steps", steps], ["why", why], ["faq", faq]].forEach(([k, a]) => { if (Array.isArray(M[k])) a.splice(0, a.length, ...M[k]); });
+  if (Array.isArray(M.social)) SOC.splice(0, SOC.length, ...M.social, wa); }
 
 // ---------- builders ----------
 const card = (s, i, cls) => `<a class="c ${cls || s[6]}" href="service.html?s=${s[0]}"><span class="n">${pad(i + 1)} / ${pad(sv.length)}</span><span class="go">→</span><div class="tags">${s[5].map(t => `<span>${t}</span>`).join("")}</div><h3>${s[1]}</h3><p>${s[2]}</p></a>`;

@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex,nofollow"><title>Admin | MyBean InfoTech</title>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600&family=Raleway:wght@700;800&display=swap" rel="stylesheet">
+<style>
+:root{--a:#E0583A;--ink:#0b0b0b;--g:#f4f3f1;--ln:#e7e5e2}
+*{box-sizing:border-box;margin:0}[hidden]{display:none!important}
+body{font:400 1rem/1.5 Figtree,sans-serif;background:var(--g);color:var(--ink);padding:24px}
+h1{font:800 1.5rem Raleway,sans-serif}h1 b{color:var(--a)}
+.card{background:#fff;border-radius:22px;padding:28px;max-width:520px;margin:8vh auto;display:grid;gap:14px}
+label{display:grid;gap:6px;font-size:.85rem;color:#666}
+input,textarea{font:inherit;color:var(--ink);border:1px solid var(--ln);border-radius:12px;padding:11px 14px;width:100%;background:#fff}
+input:focus,textarea:focus{outline:0;border-color:var(--a)}textarea{min-height:84px;resize:vertical}
+button{font:600 .95rem Figtree,sans-serif;border:0;border-radius:999px;padding:11px 22px;background:var(--a);color:#fff;cursor:pointer}
+button.o{background:#fff;color:var(--ink);border:1px solid var(--ink)}button.s{padding:6px 12px;font-size:.8rem}
+.bar{position:sticky;top:0;z-index:5;background:var(--g);display:flex;gap:12px;flex-wrap:wrap;align-items:center;padding:0 0 16px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}.tabs button{background:#fff;color:var(--ink);border:1px solid var(--ln)}.tabs button.on{background:var(--ink);color:#fff}
+.sp{margin-left:auto;display:flex;gap:12px;align-items:center}
+#st{font-size:.9rem;color:#666}#st.ok{color:#1a8f4a}#st.er{color:#c0392b}
+.row{background:#fff;border-radius:18px;padding:20px;margin-bottom:14px;display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.row .full{grid-column:1/-1}.rt{grid-column:1/-1;display:flex;gap:8px;align-items:center;justify-content:space-between;font-weight:600}
+@media(max-width:700px){.row{grid-template-columns:1fr}}
+</style></head><body>
+<div id="login" class="card"><h1>my<b>bean</b> admin</h1>
+<p>Edit your website content. Changes are saved to your GitHub repo and go live after Netlify redeploys (about a minute).</p>
+<label>GitHub repo (owner/name)<input id="repo" placeholder="yourname/mybean-site"></label>
+<label>Branch<input id="branch" value="main"></label>
+<label>GitHub token (Contents: read and write, for this repo only)<input id="token" type="password" autocomplete="off"></label>
+<button id="go">Connect</button><p id="lerr" style="color:#c0392b"></p></div>
+<div id="app" hidden><div class="bar"><h1>my<b>bean</b> admin</h1><div class="tabs" id="tabs"></div><div class="sp"><span id="st"></span><button id="save">Save &amp; publish</button></div></div><div id="form"></div></div>
+<script>
+const $=s=>document.querySelector(s);
+const TABS=[["contact","Contact"],["social","Social links"],["services","Services"],["projects","Projects"],["faq","FAQ"]];
+const SC={
+ social:{add:["Name","icon","https://"],f:[["Name",0],["Icon name (Font Awesome brand, e.g. instagram)",1],["URL",2,"full"]]},
+ services:{fixed:1,f:[["Slug (do not change)",0,"ro"],["Name",1],["Tagline",2,"full"],["Intro",3,"area"],["What we do (one per line)",4,"lines"],["Tags (comma separated)",5,"csv"],["Card class (do not change)",6,"ro"]]},
+ projects:{add:["New project","Category","",""],f:[["Title",0],["Category label",1],["Image (URL or images/file.jpg)",2,"img"],["Live website link (optional)",3]]},
+ faq:{add:["Question?","Answer."],f:[["Question",0,"full"],["Answer",1,"area"]]}
+};
+let cfg={},D={},sha="",tab="contact";
+const status=(m,c="")=>{const s=$("#st");s.textContent=m;s.className=c};
+const api=(p,o={})=>fetch(`https://api.github.com/repos/${cfg.repo}/contents/${p}`+(o.method?"":`?ref=${cfg.branch}`),{...o,headers:{Authorization:"Bearer "+cfg.token,Accept:"application/vnd.github+json","Content-Type":"application/json"}}).then(async r=>{if(!r.ok)throw new Error((await r.json().catch(()=>({}))).message||r.status);return r.json()});
+const dec=b=>new TextDecoder().decode(Uint8Array.from(atob(b.replace(/\n/g,"")),c=>c.charCodeAt(0)));
+const b64=u=>{let b="";for(let i=0;i<u.length;i+=8192)b+=String.fromCharCode(...u.subarray(i,i+8192));return btoa(b)};
+const E=s=>String(s??"").replace(/&/g,"&amp;").replace(/"/g,"&quot;").replace(/</g,"&lt;");
+const val=(v,t)=>t==="lines"?(v||[]).join("\n"):t==="csv"?(v||[]).join(", "):(v||"");
+function field(r,[l,k,t]){const v=val(D[tab][r][k],t),a=`data-r="${r}" data-k="${k}" data-t="${t||""}"`,full=["area","lines","full","img"].includes(t)?"full":"";
+ if(t==="area"||t==="lines")return `<label class="${full}">${l}<textarea ${a}>${E(v)}</textarea></label>`;
+ return `<label class="${full}">${l}<input ${a} value="${E(v)}"${t==="ro"?" readonly":""}>${t==="img"?`<input type="file" accept="image/*" data-up="${r}">`:""}</label>`}
+function render(){
+ $("#tabs").innerHTML=TABS.map(([k,l])=>`<button class="${k===tab?"on":""}" data-tab="${k}">${l}</button>`).join("");
+ if(tab==="contact"){const c=D.contact;$("#form").innerHTML=`<div class="row">
+ <label>WhatsApp number (country code, no +)<input data-c="wa" value="${E(c.wa)}"></label><label>Email<input data-c="mail" value="${E(c.mail)}"></label>
+ <label class="full">Phone numbers (one per line)<textarea data-c="ph">${E((c.ph||[]).join("\n"))}</textarea></label>
+ <label class="full">Address 1<textarea data-c="a1">${E(c.a1)}</textarea></label><label class="full">Address 2<textarea data-c="a2">${E(c.a2)}</textarea></label></div>`;return}
+ const S=SC[tab];
+ $("#form").innerHTML=D[tab].map((_,r)=>`<div class="row"><div class="rt"><span>#${r+1}</span><span>${S.fixed?"":`<button class="o s" data-mv="${r}:-1">↑</button> <button class="o s" data-mv="${r}:1">↓</button> <button class="o s" data-del="${r}">Delete</button>`}</span></div>${S.f.map(f=>field(r,f)).join("")}</div>`).join("")+(S.add?`<button class="o" data-add="1">+ Add</button>`:"");
+}
+document.addEventListener("input",e=>{const t=e.target;
+ if(t.dataset.c){D.contact[t.dataset.c]=t.dataset.c==="ph"?t.value.split("\n").map(x=>x.trim()).filter(Boolean):t.value;return}
+ if(t.dataset.r===undefined)return;const T=t.dataset.t;
+ D[tab][+t.dataset.r][+t.dataset.k]=T==="lines"?t.value.split("\n").map(x=>x.trim()).filter(Boolean):T==="csv"?t.value.split(",").map(x=>x.trim()).filter(Boolean):t.value});
+document.addEventListener("click",e=>{const t=e.target.closest("button");if(!t)return;
+ if(t.dataset.tab){tab=t.dataset.tab;render()}
+ else if(t.dataset.del!==undefined){if(confirm("Delete this item?")){D[tab].splice(+t.dataset.del,1);render()}}
+ else if(t.dataset.mv){const[r,d]=t.dataset.mv.split(":").map(Number),a=D[tab],j=r+d;if(j>=0&&j<a.length){[a[r],a[j]]=[a[j],a[r]];render()}}
+ else if(t.dataset.add){D[tab].push([...SC[tab].add]);render();scrollTo(0,document.body.scrollHeight)}});
+document.addEventListener("change",async e=>{const f=e.target.files&&e.target.files[0];if(!f||e.target.dataset.up===undefined)return;
+ status("Uploading image…");try{const name=Date.now()+"-"+f.name.toLowerCase().replace(/[^a-z0-9.]+/g,"-");
+ await api("images/"+name,{method:"PUT",body:JSON.stringify({message:"admin: upload "+name,content:b64(new Uint8Array(await f.arrayBuffer())),branch:cfg.branch})});
+ D.projects[+e.target.dataset.up][2]="images/"+name;render();status("Image uploaded. Now click Save & publish.","ok")}catch(x){status(x.message,"er")}});
+$("#go").onclick=async()=>{cfg={repo:$("#repo").value.trim(),branch:$("#branch").value.trim()||"main",token:$("#token").value.trim()};
+ try{const r=await api("content.js");sha=r.sha;const t=dec(r.content);D=JSON.parse(t.slice(t.indexOf("{"),t.lastIndexOf("}")+1));
+ localStorage.mbRepo=cfg.repo;localStorage.mbBranch=cfg.branch;sessionStorage.mbTok=cfg.token;$("#login").hidden=true;$("#app").hidden=false;render()}
+ catch(x){$("#lerr").textContent="Could not connect: "+x.message}};
+$("#save").onclick=async()=>{status("Saving…");D.projects.forEach(p=>{if(!p[3])p.length=3});
+ try{const r=await api("content.js",{method:"PUT",body:JSON.stringify({message:"content: update via admin panel",content:b64(new TextEncoder().encode("window.MB = "+JSON.stringify(D,null,2)+";\n")),sha,branch:cfg.branch})});
+ sha=r.content.sha;status("Saved. Site updates in about a minute.","ok")}catch(x){status(x.message,"er")}};
+$("#repo").value=localStorage.mbRepo||"";$("#branch").value=localStorage.mbBranch||"main";$("#token").value=sessionStorage.mbTok||"";
+</script></body></html>
