@@ -142,3 +142,70 @@ document.addEventListener("click", e => { const a = e.target.closest("a"); if (!
   e.preventDefault(); document.body.classList.add("out"); setTimeout(() => { location.href = u.href; }, 260); });
 addEventListener("pageshow", () => document.body.classList.remove("out"));
 if (location.hash) setTimeout(() => { const t = document.getElementById(location.hash.slice(1)); if (t) t.scrollIntoView(); }, 60);
+
+(() => {
+  if (document.getElementById("mbchat")) return;
+  const esc = s => s.replace(/[&<>"]/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+  const L = (t, u, ext) => `<a href="${u}"${ext ? ' target="_blank" rel="noopener"' : ""}>${t}</a>`;
+  const svcList = sv.map(s => `• ${L(s[1], "service.html?s=" + s[0])}`).join("<br>");
+  const tel = C.ph.map(p => L(p, "tel:" + p.replace(/\s/g, ""))).join(" · ");
+  const A = {
+    hi: "Vanakkam! 👋 I'm the MyBean assistant. Ask me about our services, pricing, projects or how to reach us.",
+    services: `We offer six services:<br>${svcList}`,
+    software: `We build custom ERP, billing, stock, hospital, school and transport software. ${L("See Software Development", "service.html?s=software-development")} or ${L("view our projects", "portfolio.html")}.`,
+    web: `We build websites, web apps and mobile apps, plus automation and integrations. ${L("Digital Innovation", "service.html?s=digital-innovation")}`,
+    design: `Our UI/UX team designs screens, prototypes and design systems. ${L("Design Innovation", "service.html?s=design-innovation")}`,
+    seo: `We handle technical, on-page and local SEO so customers can find you. ${L("SEO service", "service.html?s=seo")}`,
+    marketing: `We do brand identity, social media and campaigns. ${L("Digital Marketing & Branding", "service.html?s=digital-marketing-branding")}`,
+    research: `We support scholars and institutions with research guidance and publication help. ${L("Research & Publication", "service.html?s=research-publication")}`,
+    price: `Cost depends on scope, like the cost of a house. Share your requirement and we'll send a clear quote. ${L("Get a quote", "contact.html#project")} or ${L("WhatsApp us", WA, 1)}.`,
+    time: `Timeline depends on scope. We give you a clear timeline once we understand your requirement. ${L("Tell us your idea", "contact.html#project")}`,
+    contact: `Email: ${L(C.mail, "mailto:" + C.mail)}<br>Call: ${tel}<br>${L("Chat on WhatsApp", WA, 1)}`,
+    address: `${C.a1}<br><br>${C.a2}<br><br>${L("Open contact page", "contact.html")}`,
+    work: `We've delivered ERP, stock control, hospital, billing, school and transport systems, plus websites like Bishop Ambrose College. ${L("See portfolio", "portfolio.html")}`,
+    careers: `Interested in joining us? ${L("See careers", "careers.html")} or send your CV on ${L("WhatsApp", WA, 1)} or to ${L(C.mail, "mailto:" + C.mail)}.`,
+    support: "Yes. We train your team, fix issues and handle upgrades after go-live.",
+    about: `MyBean InfoTech is a customer-first software and digital marketing company from Coimbatore, serving customers since 2015. ${L("About us", "about.html")}`,
+    thanks: "You're welcome! Anything else I can help with?",
+    bye: "Thanks for visiting MyBean InfoTech. Have a great day! 👋",
+    fallback: `I'm not sure about that one. Our team can help directly: ${L("chat on WhatsApp", WA, 1)} or ${L("send us a message", "contact.html#project")}.`
+  };
+  const I = [
+    [/^(hi|hello|hey|hai|hii+|vanakkam)\b/, "hi"],
+    [/price|cost|quote|charge|\bfee\b|\brate\b|evlo|evvalavu|vilai|budget/, "price"],
+    [/how long|duration|how many (days|weeks)|deliver|timeline|eppo/, "time"],
+    [/phone|\bcall\b|number|e-?mail|contact|whatsapp|reach|talk/, "contact"],
+    [/address|location|where|office|visit|\bmap\b|enga|ganapathy/, "address"],
+    [/\bseo\b|search engine|google rank|ranking/, "seo"],
+    [/brand|logo|marketing|social media|instagram|facebook|\bads?\b|campaign/, "marketing"],
+    [/design|\bui\b|\bux\b|figma|prototype/, "design"],
+    [/research|publication|paper|journal|scholar/, "research"],
+    [/website|web site|web app|mobile app|android|\bapp\b|automation|integration/, "web"],
+    [/\berp\b|billing|stock|inventory|hospital|school|transport|software|custom/, "software"],
+    [/project|portfolio|\bwork\b|client|sample|example/, "work"],
+    [/career|\bjob\b|hiring|vacanc|intern|opening|velai/, "careers"],
+    [/support|maintenance|after launch|training/, "support"],
+    [/service|what do you do|what can you|\boffer/, "services"],
+    [/about|who are you|company|since|mybean/, "about"],
+    [/thank|nandri/, "thanks"],
+    [/\bbye\b|goodbye|see you/, "bye"]
+  ];
+  document.body.insertAdjacentHTML("beforeend", `<button class="cb-btn" id="mbchat" aria-label="Open chat assistant" aria-expanded="false"><i class="fa-solid fa-comment-dots"></i></button>
+<section class="cb" id="cbp" aria-label="MyBean assistant" hidden>
+<header class="cb-h"><span class="cb-av">m</span><div><b>MyBean Assistant</b><small><i></i>Online · replies instantly</small></div><button class="cb-x" aria-label="Close chat">×</button></header>
+<div class="cb-m" id="cbm" role="log" aria-live="polite"></div><div class="cb-q" id="cbq"></div>
+<form class="cb-f" id="cbf"><input id="cbi" placeholder="Type your question…" autocomplete="off" aria-label="Your question"><button aria-label="Send">→</button></form></section>`);
+  const m = document.getElementById("cbm"), q = document.getElementById("cbq"), p = document.getElementById("cbp"), b = document.getElementById("mbchat"), inp = document.getElementById("cbi");
+  const add = (h, who) => { const d = document.createElement("div"); d.className = "cb-b " + who; d.innerHTML = h; m.appendChild(d); m.scrollTop = m.scrollHeight; return d; };
+  const chips = () => { q.innerHTML = ["Our services", "Get a quote", "Contact details", "Where are you?", "See projects"].map(t => `<button type="button">${t}</button>`).join(""); };
+  const reply = t => { const s = t.toLowerCase(), hit = I.find(x => x[0].test(s)); return hit ? A[hit[1]] : A.fallback; };
+  const ask = t => { t = t.trim(); if (!t) return; add(esc(t), "u"); q.innerHTML = ""; const d = add('<span class="cb-t"><i></i><i></i><i></i></span>', "b");
+    setTimeout(() => { d.innerHTML = reply(t); m.scrollTop = m.scrollHeight; chips(); }, 600); };
+  const open = o => { p.hidden = !o; b.setAttribute("aria-expanded", o); b.classList.toggle("on", o);
+    if (o) { if (!m.children.length) { add(A.hi, "b"); chips(); } if (matchMedia("(min-width:641px)").matches) inp.focus(); } };
+  b.addEventListener("click", () => open(p.hidden));
+  p.querySelector(".cb-x").addEventListener("click", () => open(false));
+  q.addEventListener("click", e => { const x = e.target.closest("button"); if (x) ask(x.textContent); });
+  document.getElementById("cbf").addEventListener("submit", e => { e.preventDefault(); ask(inp.value); inp.value = ""; });
+  addEventListener("keydown", e => { if (e.key === "Escape" && !p.hidden) open(false); });
+})();
